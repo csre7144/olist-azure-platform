@@ -84,3 +84,33 @@ resource "azurerm_databricks_workspace" "dbx" {
   location            = var.location
   sku                 = "premium"
 }
+
+variable "sql_admin_password" {
+  type      = string
+  sensitive = true
+}
+
+resource "azurerm_mssql_server" "sql" {
+  name                         = "olist-sql-chintan01"
+  resource_group_name          = azurerm_resource_group.rg.name
+  location                     = var.location
+  version                      = "12.0"
+  administrator_login          = "sqladmin"
+  administrator_login_password = var.sql_admin_password
+}
+
+resource "azurerm_mssql_database" "db" {
+  name                        = "olist-db"
+  server_id                   = azurerm_mssql_server.sql.id
+  sku_name                    = "GP_S_Gen5_1"
+  min_capacity                = 0.5
+  auto_pause_delay_in_minutes = 60
+  max_size_gb                 = 2
+}
+
+resource "azurerm_mssql_firewall_rule" "azure_services" {
+  name             = "AllowAzureServices"
+  server_id        = azurerm_mssql_server.sql.id
+  start_ip_address = "106.216.80.53"
+  end_ip_address   = "106.216.80.53"
+}
