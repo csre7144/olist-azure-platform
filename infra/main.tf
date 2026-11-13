@@ -111,6 +111,27 @@ resource "azurerm_mssql_database" "db" {
 resource "azurerm_mssql_firewall_rule" "azure_services" {
   name             = "AllowAzureServices"
   server_id        = azurerm_mssql_server.sql.id
-  start_ip_address = "106.216.80.53"
-  end_ip_address   = "106.216.80.53"
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
+}
+
+resource "azurerm_mssql_firewall_rule" "my_pc" {
+  name             = "MyPC"
+  server_id        = azurerm_mssql_server.sql.id
+  start_ip_address = "103.240.169.171"
+  end_ip_address   = "103.240.169.171"
+}
+
+resource "azurerm_key_vault_access_policy" "me" {
+  key_vault_id       = azurerm_key_vault.kv.id
+  tenant_id          = data.azurerm_client_config.current.tenant_id
+  object_id          = data.azurerm_client_config.current.object_id
+  secret_permissions = ["Get", "List", "Set", "Delete", "Purge"]
+}
+
+resource "azurerm_key_vault_access_policy" "adf" {
+  key_vault_id       = azurerm_key_vault.kv.id
+  tenant_id          = data.azurerm_client_config.current.tenant_id
+  object_id          = azurerm_data_factory.adf.identity[0].principal_id
+  secret_permissions = ["Get", "List"]
 }
