@@ -135,3 +135,24 @@ resource "azurerm_key_vault_access_policy" "adf" {
   object_id          = azurerm_data_factory.adf.identity[0].principal_id
   secret_permissions = ["Get", "List"]
 }
+
+resource "azurerm_databricks_access_connector" "ac" {
+  name                = "olist-dbx-connector"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_role_assignment" "dbx_lake" {
+  scope                = azurerm_storage_account.lake.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_databricks_access_connector.ac.identity[0].principal_id
+}
+
+output "access_connector_id" {
+  value = azurerm_databricks_access_connector.ac.id
+}
+
